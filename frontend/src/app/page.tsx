@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 
@@ -17,12 +18,23 @@ export default function Home() {
             A focused workspace for placement preparation, resume readiness, coding progress, and interview practice.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/dashboard" className="rounded-md bg-ink px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-              Open dashboard
-            </Link>
-            <Link href="/login" className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-ink hover:bg-slate-50">
-              Login
-            </Link>
+            <SignedOut>
+              <SignUpButton mode="modal">
+                <button className="rounded-md bg-ink px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                  Sign up
+                </button>
+              </SignUpButton>
+              <SignInButton mode="modal">
+                <button className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-ink hover:bg-slate-50">
+                  Sign in
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/dashboard" className="rounded-md bg-ink px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                Open dashboard
+              </Link>
+            </SignedIn>
           </div>
         </div>
         <div className="grid gap-4">
