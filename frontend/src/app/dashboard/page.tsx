@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { AppHeader } from "@/components/AppHeader";
+import { UserSyncStatus } from "@/components/UserSyncStatus";
 
 const sections = ["Practice", "Resume", "Interviews", "Applications"];
 
@@ -34,6 +35,7 @@ export default async function DashboardPage() {
               <dd className="mt-1 break-all text-slate-900">{user?.id}</dd>
             </div>
           </dl>
+          <UserSyncStatus />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {sections.map((section) => (
