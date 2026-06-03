@@ -7,6 +7,8 @@ from app.db.session import get_db
 from app.models.leetcode_profile import LeetCodeProfile
 from app.models.user import User
 from app.schemas.leetcode_profile import LeetCodeProfileCreate, LeetCodeProfileRead
+from app.schemas.leetcode_sync import LeetCodeSyncResponse
+from app.services.leetcode.sync import LeetCodeSyncError, sync_leetcode_profile
 
 router = APIRouter(prefix="/leetcode", tags=["leetcode"])
 
@@ -55,3 +57,13 @@ def get_leetcode_profile(clerk_user_id: str, db: Session = Depends(get_db)) -> L
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="LeetCode profile not found.")
 
     return profile
+
+
+@router.post("/sync/{clerk_user_id}", response_model=LeetCodeSyncResponse)
+def sync_profile(clerk_user_id: str, db: Session = Depends(get_db)) -> LeetCodeSyncResponse:
+    try:
+        result = sync_leetcode_profile(clerk_user_id=clerk_user_id, db=db)
+    except LeetCodeSyncError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+
+    return LeetCodeSyncResponse(**result.__dict__)

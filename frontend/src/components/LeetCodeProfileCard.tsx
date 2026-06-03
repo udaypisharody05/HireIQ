@@ -3,10 +3,18 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 
-type ProfileState = "loading" | "idle" | "saving" | "saved" | "error";
+type ProfileState = "loading" | "idle" | "saving" | "syncing" | "saved" | "synced" | "error";
 
 type LeetCodeProfile = {
   username: string;
+};
+
+type LeetCodeSyncResponse = {
+  synced_at: string;
+  problems_upserted: number;
+  topics_upserted: number;
+  submissions_inserted: number;
+  submissions_skipped: number;
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -17,6 +25,7 @@ export function LeetCodeProfileCard() {
   const [username, setUsername] = useState("");
   const [linkedUsername, setLinkedUsername] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [syncSummary, setSyncSummary] = useState<LeetCodeSyncResponse | null>(null);
 
   useEffect(() => {
     if (!isLoaded) {
@@ -50,6 +59,7 @@ export function LeetCodeProfileCard() {
       const profile = (await response.json()) as LeetCodeProfile;
       setLinkedUsername(profile.username);
       setUsername(profile.username);
+      setSyncSummary(null);
       setProfileState("idle");
     };
 
@@ -97,6 +107,7 @@ export function LeetCodeProfileCard() {
       const profile = (await response.json()) as LeetCodeProfile;
       setLinkedUsername(profile.username);
       setUsername(profile.username);
+      setSyncSummary(null);
       setProfileState("saved");
       setMessage("LeetCode profile saved.");
     } catch (error: unknown) {
@@ -105,11 +116,41 @@ export function LeetCodeProfileCard() {
     }
   };
 
-  const isBusy = profileState === "loading" || profileState === "saving";
+  const syncProfile = async () => {
+    if (!user) {
+      setProfileState("error");
+      setMessage("You must be signed in to sync a LeetCode profile.");
+      return;
+    }
+
+    setProfileState("syncing");
+    setMessage(null);
+    setSyncSummary(null);
+
+    try {
+      const response = await fetch(`${apiUrl}/leetcode/sync/${encodeURIComponent(user.id)}`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Profile sync failed with status ${response.status}`);
+      }
+
+      const summary = (await response.json()) as LeetCodeSyncResponse;
+      setSyncSummary(summary);
+      setProfileState("synced");
+      setMessage("LeetCode sync completed.");
+    } catch (error: unknown) {
+      setProfileState("error");
+      setMessage(error instanceof Error ? error.message : "Unable to sync LeetCode profile.");
+    }
+  };
+
+  const isBusy = profileState === "loading" || profileState === "saving" || profileState === "syncing";
   const statusClass =
     profileState === "error"
       ? "border-red-200 bg-red-50 text-red-700"
-      : profileState === "saved"
+      : profileState === "saved" || profileState === "synced"
         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
         : "border-slate-200 bg-slate-50 text-slate-700";
 
@@ -128,7 +169,11 @@ export function LeetCodeProfileCard() {
             )}
           </p>
         </div>
-        {isBusy ? <span className="text-sm text-slate-500">{profileState === "saving" ? "Saving..." : "Loading..."}</span> : null}
+        {isBusy ? (
+          <span className="text-sm text-slate-500">
+            {profileState === "saving" ? "Saving..." : profileState === "syncing" ? "Syncing..." : "Loading..."}
+          </span>
+        ) : null}
       </div>
 
       <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={saveProfile}>
@@ -150,11 +195,27 @@ export function LeetCodeProfileCard() {
         >
           Save
         </button>
+        {linkedUsername ? (
+          <button
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+            disabled={isBusy || !isSignedIn}
+            onClick={syncProfile}
+            type="button"
+          >
+            Sync
+          </button>
+        ) : null}
       </form>
 
-      {message || profileState === "loading" ? (
+      {message || profileState === "loading" || syncSummary ? (
         <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${statusClass}`} role={profileState === "error" ? "alert" : "status"}>
-          {message ?? "Loading LeetCode profile..."}
+          <p className="font-medium">{message ?? "Loading LeetCode profile..."}</p>
+          {syncSummary ? (
+            <p className="mt-1 text-xs">
+              {syncSummary.submissions_inserted} submissions inserted, {syncSummary.submissions_skipped} skipped,{" "}
+              {syncSummary.problems_upserted} problems and {syncSummary.topics_upserted} topics updated.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </section>
