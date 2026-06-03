@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { AppHeader } from "@/components/AppHeader";
+import { LeetCodeProfileCard } from "@/components/LeetCodeProfileCard";
 import { UserSyncStatus } from "@/components/UserSyncStatus";
 
 const sections = ["Practice", "Resume", "Interviews", "Applications"];
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
           </dl>
           <UserSyncStatus />
         </div>
+        <LeetCodeProfileCard />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {sections.map((section) => (
             <div key={section} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">

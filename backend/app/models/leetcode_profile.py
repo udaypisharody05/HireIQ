@@ -23,5 +23,8 @@ class LeetCodeProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     medium_solved: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     hard_solved: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_sync_attempted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sync_status: Mapped[str] = mapped_column(String(32), default="never_synced", server_default="never_synced", index=True)
+    last_sync_error: Mapped[str | None] = mapped_column(String(512))
 
     user: Mapped[User] = relationship(back_populates="leetcode_profile")
