@@ -29,7 +29,7 @@ class AnalyticsNotFoundError(Exception):
     pass
 
 
-def _get_user_and_profile(clerk_user_id: str, db: Session) -> tuple[User, LeetCodeProfile]:
+def get_user_and_profile(clerk_user_id: str, db: Session) -> tuple[User, LeetCodeProfile]:
     user = db.scalar(select(User).where(User.clerk_user_id == clerk_user_id))
     if user is None:
         raise AnalyticsNotFoundError("User not found.")
@@ -41,7 +41,7 @@ def _get_user_and_profile(clerk_user_id: str, db: Session) -> tuple[User, LeetCo
     return user, profile
 
 
-def _get_topic_solved_counts(user_id: uuid.UUID, db: Session) -> list[tuple[str, int]]:
+def get_topic_solved_counts(user_id: uuid.UUID, db: Session) -> list[tuple[str, int]]:
     rows = db.execute(
         select(
             ProblemTopic.topic,
@@ -59,9 +59,9 @@ def _get_topic_solved_counts(user_id: uuid.UUID, db: Session) -> list[tuple[str,
 
 
 def get_analytics_summary(clerk_user_id: str, db: Session) -> AnalyticsSummary:
-    user, profile = _get_user_and_profile(clerk_user_id, db)
+    user, profile = get_user_and_profile(clerk_user_id, db)
     topic_counts = sorted(
-        _get_topic_solved_counts(user.id, db),
+        get_topic_solved_counts(user.id, db),
         key=lambda item: (-item[1], item[0]),
     )
 
@@ -104,8 +104,8 @@ def get_analytics_summary(clerk_user_id: str, db: Session) -> AnalyticsSummary:
 
 
 def get_weakness_analytics(clerk_user_id: str, db: Session) -> WeaknessAnalyticsResponse:
-    user, _ = _get_user_and_profile(clerk_user_id, db)
-    topic_counts = _get_topic_solved_counts(user.id, db)
+    user, _ = get_user_and_profile(clerk_user_id, db)
+    topic_counts = get_topic_solved_counts(user.id, db)
 
     if len(topic_counts) < MINIMUM_TOPICS_FOR_INSIGHTS:
         return WeaknessAnalyticsResponse(
