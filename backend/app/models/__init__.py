@@ -1,3 +1,4 @@
+from app.models.catalog_sync_state import CatalogSyncState
 from app.models.leetcode_profile import LeetCodeProfile
 from app.models.problem import Problem, ProblemTopic
 from app.models.recommendation import Recommendation
@@ -7,6 +8,7 @@ from app.models.user_submission import UserSubmission
 from app.models.user_topic_stat import UserTopicStat
 
 __all__ = [
+    "CatalogSyncState",
     "LeetCodeProfile",
     "Problem",
     "ProblemTopic",

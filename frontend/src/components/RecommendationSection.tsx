@@ -158,7 +158,7 @@ export function RecommendationSection({ refreshKey }: RecommendationSectionProps
           Practice Recommendations
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Deterministic suggestions based on your observed topic mastery and the local problem catalog.
+          Deterministic suggestions based on your observed topic mastery and the global problem catalog.
         </p>
       </div>
 
@@ -184,10 +184,10 @@ export function RecommendationSection({ refreshKey }: RecommendationSectionProps
         {recommendations.recommended_problems.length === 0 ? (
           <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-medium text-slate-800">
-              No matching unsolved problems found in the local synced catalog yet.
+              No matching unsolved problems found in the global catalog yet.
             </p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
-              The current catalog is built from synced submissions and may have limited coverage.
+              Refresh the global catalog to expand available recommendation candidates.
             </p>
           </div>
         ) : (
@@ -222,7 +222,7 @@ export function RecommendationSection({ refreshKey }: RecommendationSectionProps
       </div>
 
       <p className="mt-3 text-xs text-slate-500">
-        Recommendations use recent accepted submissions and problems already present in HireIQ’s local synced catalog.
+        Recommendations use recent accepted submissions and free problems in HireIQ&apos;s global catalog.
       </p>
     </section>
   );

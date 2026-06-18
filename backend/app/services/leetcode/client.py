@@ -9,6 +9,7 @@ from socket import timeout as SocketTimeout
 from typing import Any
 
 from app.services.leetcode.queries import (
+    PROBLEM_CATALOG_QUERY,
     PROBLEM_METADATA_QUERY,
     RECENT_ACCEPTED_SUBMISSIONS_QUERY,
     USER_PROFILE_STATS_QUERY,
@@ -56,6 +57,28 @@ class LeetCodeClient:
             raise LeetCodeClientError("LeetCode problem metadata response had an unexpected shape.")
         return question
 
+    def get_problem_catalog_page(self, skip: int, limit: int = 100) -> tuple[int, list[dict[str, Any]]]:
+        data = self._execute(
+            "ProblemsetQuestionList",
+            PROBLEM_CATALOG_QUERY,
+            {
+                "categorySlug": "",
+                "skip": skip,
+                "limit": limit,
+                "filters": {},
+            },
+        )
+        result = data.get("problemsetQuestionList")
+        if not isinstance(result, dict):
+            raise LeetCodeClientError("LeetCode catalog response had an unexpected shape.")
+
+        total = result.get("total")
+        questions = result.get("questions")
+        if not isinstance(total, int) or not isinstance(questions, list):
+            raise LeetCodeClientError("LeetCode catalog response was missing pagination data.")
+
+        return total, [question for question in questions if isinstance(question, dict)]
+
     def _execute(self, operation_name: str, query: str, variables: dict[str, Any]) -> dict[str, Any]:
         payload = json.dumps({"query": query, "variables": variables}).encode("utf-8")
         headers = {
@@ -77,8 +100,13 @@ class LeetCodeClient:
                     raise LeetCodeClientError("LeetCode request timed out.", status_code=503) from exc
             except urllib.error.HTTPError as exc:
                 last_error = exc
-                if exc.code >= 500 and attempt < self.max_attempts:
-                    time.sleep(self.retry_delay_seconds)
+                if exc.code in {429, 500, 502, 503, 504} and attempt < self.max_attempts:
+                    retry_after = exc.headers.get("Retry-After")
+                    try:
+                        delay = float(retry_after) if retry_after else self.retry_delay_seconds * (2 ** (attempt - 1))
+                    except ValueError:
+                        delay = self.retry_delay_seconds * (2 ** (attempt - 1))
+                    time.sleep(delay)
                     continue
                 status_code = 503 if exc.code in {403, 429, 503} else 502
                 raise LeetCodeClientError(f"LeetCode returned HTTP {exc.code}.", status_code=status_code) from exc
@@ -89,7 +117,7 @@ class LeetCodeClient:
             except json.JSONDecodeError as exc:
                 raise LeetCodeClientError("LeetCode returned invalid JSON.") from exc
 
-            time.sleep(self.retry_delay_seconds)
+            time.sleep(self.retry_delay_seconds * (2 ** (attempt - 1)))
 
         raise LeetCodeClientError("LeetCode request failed.", status_code=503) from last_error
 

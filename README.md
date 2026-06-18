@@ -74,6 +74,19 @@ Copy `.env.example` to `.env` for Docker Compose. The frontend and backend both 
 ## Available Endpoints
 
 - `GET /health` - Returns backend health status.
+- `GET /catalog/status` - Returns global LeetCode catalog size and refresh status.
+
+## Global LeetCode Catalog
+
+Apply migrations, then run the idempotent catalog import:
+
+```bash
+docker compose exec backend alembic upgrade head
+docker compose exec backend python -m app.commands.sync_catalog
+```
+
+Run the catalog command weekly from cron or the deployment scheduler. It imports free
+problems from LeetCode's public GraphQL endpoint and does not require cookies.
 
 ## Current Scope
 

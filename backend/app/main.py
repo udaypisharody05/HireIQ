@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analytics import router as analytics_router
+from app.api.catalog import router as catalog_router
 from app.api.health import router as health_router
 from app.api.leetcode import router as leetcode_router
 from app.api.recommendations import router as recommendations_router
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(analytics_router)
+    app.include_router(catalog_router)
     app.include_router(health_router)
     app.include_router(leetcode_router)
     app.include_router(recommendations_router)
