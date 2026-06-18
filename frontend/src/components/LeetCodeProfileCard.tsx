@@ -19,7 +19,11 @@ type LeetCodeSyncResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export function LeetCodeProfileCard() {
+type LeetCodeProfileCardProps = {
+  onSyncComplete?: () => void;
+};
+
+export function LeetCodeProfileCard({ onSyncComplete }: LeetCodeProfileCardProps) {
   const { isLoaded, isSignedIn, user } = useUser();
   const [profileState, setProfileState] = useState<ProfileState>("loading");
   const [username, setUsername] = useState("");
@@ -140,6 +144,7 @@ export function LeetCodeProfileCard() {
       setSyncSummary(summary);
       setProfileState("synced");
       setMessage("LeetCode sync completed.");
+      onSyncComplete?.();
     } catch (error: unknown) {
       setProfileState("error");
       setMessage(error instanceof Error ? error.message : "Unable to sync LeetCode profile.");
