@@ -25,3 +25,24 @@ class AnalyticsSummary(BaseModel):
     sync_status: str
     topic_stats: list[TopicStat]
     recent_submissions: list[RecentSubmission]
+
+
+class StrongTopic(BaseModel):
+    topic: str
+    solved_count: int
+    mastery_score: int
+
+
+class WeakTopic(StrongTopic):
+    reason: str
+
+
+class FocusTopic(BaseModel):
+    topic: str
+    reason: str
+
+
+class WeaknessAnalyticsResponse(BaseModel):
+    strongest_topics: list[StrongTopic]
+    weakest_topics: list[WeakTopic]
+    recommended_focus_topics: list[FocusTopic]
